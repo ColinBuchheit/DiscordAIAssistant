@@ -1,0 +1,41 @@
+version: '3.9'
+services:
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: discordBotDB
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.app  # Updated Dockerfile for the Python app
+    container_name: discord-bot-app
+    depends_on:
+      - mongo
+      - api
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017/discordBotDB
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - CHATGPT_API_KEY=${CHATGPT_API_KEY}
+    volumes:
+      - .:/app
+    command: python application/discord_api.py  # Running the Python bot
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api  # Updated Dockerfile for the Node.js server
+    container_name: discord-api
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017/discordBotDB
+    ports:
+      - "5000:5000"
+    command: node dist/server.js  # Ensure the server script runs properly
+
+volumes:
+  mongo-data:
