@@ -1,0 +1,31 @@
+# Ignore node modules and Python virtual environment files
+node_modules/
+.venv/
+.env
+__pycache__/
+dist/
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Ignore logs and cache
+*.log
+*.cache
+*.tmp
+*.pid
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ignore IDE specific files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Ignore Docker related files
+docker-compose.override.yml
+
+# Ignore typescript build folder
+/build

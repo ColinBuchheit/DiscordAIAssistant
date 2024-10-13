@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist", // All compiled JS files will be placed here
+    "rootDir": "./", // Indicates the root directory of input files
+    "declaration": true,
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  },
+  "include": ["**/*.ts", "init-mango.js"], // Include all TypeScript files in all folders
+  
+  "exclude": ["node_modules", "dist", "test/**/*.ts"]
+}
