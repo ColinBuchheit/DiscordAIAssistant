@@ -1,41 +1,43 @@
-version: '3.9'
+version: '3.8'  # Removed obsolete version for compatibility
+
 services:
   mongo:
-    image: mongo:latest
+    image: mongo:8.0.0
     container_name: mongo
     ports:
       - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example  # Set your credentials
     volumes:
       - mongo-data:/data/db
-    environment:
-      MONGO_INITDB_DATABASE: discordBotDB
 
-  app:
+  discord-api:
     build:
       context: .
-      dockerfile: Dockerfile.app  # Updated Dockerfile for the Python app
-    container_name: discord-bot-app
-    depends_on:
-      - mongo
-      - api
-    environment:
-      - MONGODB_URI=mongodb://mongo:27017/discordBotDB
-      - DISCORD_TOKEN=${DISCORD_TOKEN}
-      - CHATGPT_API_KEY=${CHATGPT_API_KEY}
-    volumes:
-      - .:/app
-    command: python application/discord_api.py  # Running the Python bot
-
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile.api  # Updated Dockerfile for the Node.js server
+      dockerfile: Dockerfile.api
     container_name: discord-api
-    environment:
-      - MONGODB_URI=mongodb://mongo:27017/discordBotDB
     ports:
       - "5000:5000"
-    command: node dist/server.js  # Ensure the server script runs properly
+    depends_on:
+      - mongo
+    environment:
+      - MONGODB_URI=mongodb://root:example@mongo:27017/discordBotDB?authSource=admin
+      - PORT=5000
+
+  discord-bot-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    container_name: discord-bot-app
+    depends_on:
+      - discord-api
+      - mongo
+    environment:
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - GPT_API_KEY=${GPT_API_KEY}
+      - API_BASE_URL=http://discord-api:5000/api  # Use service name instead of localhost
 
 volumes:
   mongo-data:
+    driver: local
