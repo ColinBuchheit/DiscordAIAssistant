@@ -1,0 +1,27 @@
+# Use official Node.js image
+FROM node:18
+
+# Set the working directory
+WORKDIR /app
+
+# Copy package.json, package-lock.json, and tsconfig.json from the root directory
+COPY package*.json tsconfig.json /app/
+
+# Install dependencies
+RUN npm install
+RUN npm install -g typescript
+
+# Copy server.ts from the application folder
+COPY ./application/server.ts /app/
+
+# Copy the infrastructure folder so the dependencies can be resolved
+COPY ./infrastructure /app/infrastructure
+
+# Compile TypeScript to JavaScript
+RUN tsc
+
+# Expose the port the API will run on
+EXPOSE 5000
+
+# Start the server
+CMD ["node", "/app/server.js"]

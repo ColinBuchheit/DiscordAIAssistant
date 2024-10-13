@@ -4,10 +4,11 @@
   "description": "",
   "main": "dist/server.js",
   "scripts": {
-    "build": "tsc",  
-    "start": "node dist/application/server.js",  
-    "dev": "ts-node application/server.ts",  
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "start": "node dist/application/server.js",
+    "dev": "ts-node application/server.ts",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prettier": "prettier --write ."
   },
   "dependencies": {
     "@types/cors": "^2.8.17",
@@ -25,6 +26,7 @@
     "@types/express-rate-limit": "^6.0.0",
     "@types/mongodb": "^4.0.7",
     "@types/node": "^22.7.4",
+    "prettier": "^3.3.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.2"
   },

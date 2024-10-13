@@ -27,9 +27,11 @@ def start_bot():
     print("Starting Discord Bot...")
     try:
         gpt_bing_check()  # Check GPT connection first
+        print("ChatGPT connection verified. Starting the bot...")
         bot.run(os.getenv("DISCORD_TOKEN"))
     except Exception as e:
         print(f"Error starting the bot: {e}")
+
 
 def show_startup_details():
     """ Opens a PowerShell window to show startup details """
