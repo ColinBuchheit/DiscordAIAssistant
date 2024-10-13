@@ -1,27 +1,27 @@
-# Use official Node.js image
+# Use an official Node.js runtime as a parent image
 FROM node:18
 
-# Set the working directory
+# Set the working directory in the container
 WORKDIR /app
 
-# Copy package.json, package-lock.json, and tsconfig.json from the root directory
-COPY package*.json tsconfig.json /app/
+# Copy package.json and package-lock.json first to take advantage of Docker layer caching
+COPY package*.json ./
 
-# Install dependencies
+# Install the dependencies
 RUN npm install
-RUN npm install -g typescript
 
-# Copy server.ts from the application folder
-COPY ./application/server.ts /app/
+# Copy the entire project directory to the container
+COPY . .
 
-# Copy the infrastructure folder so the dependencies can be resolved
-COPY ./infrastructure /app/infrastructure
+# Compile TypeScript (if you're using TypeScript)
+RUN npm run build
 
-# Compile TypeScript to JavaScript
-RUN tsc
+# Set environment variables
+ARG NODE_ENV=production
+ENV NODE_ENV=${NODE_ENV}
 
-# Expose the port the API will run on
+# Expose the application's port
 EXPOSE 5000
 
-# Start the server
-CMD ["node", "/app/server.js"]
+# Run the application
+CMD ["npm", "start"]
