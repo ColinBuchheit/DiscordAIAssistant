@@ -6,14 +6,15 @@
     "strict": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "./dist",
-    "rootDir": "./", // Start from the project root
+    "outDir": "./dist", // All compiled JS files will be placed here
+    "rootDir": "./", // Indicates the root directory of input files
     "declaration": true,
     "sourceMap": true,
     "resolveJsonModule": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true
   },
-  "include": ["**/*.ts"], // Include all TypeScript files in all folders
+  "include": ["**/*.ts", "init-mango.js"], // Include all TypeScript files in all folders
+  
   "exclude": ["node_modules", "dist", "test/**/*.ts"]
 }

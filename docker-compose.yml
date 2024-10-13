@@ -1,5 +1,3 @@
-version: '3.8'  # Removed obsolete version for compatibility
-
 services:
   mongo:
     image: mongo:8.0.0
@@ -7,10 +5,12 @@ services:
     ports:
       - "27017:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example  # Set your credentials
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: discordBotDB
     volumes:
       - mongo-data:/data/db
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js  # Init script to set up collections/users
 
   discord-api:
     build:
@@ -22,8 +22,8 @@ services:
     depends_on:
       - mongo
     environment:
-      - MONGODB_URI=mongodb://root:example@mongo:27017/discordBotDB?authSource=admin
-      - PORT=5000
+      MONGODB_URI: mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/discordBotDB?authSource=discordBotDB
+      PORT: 5000
 
   discord-bot-app:
     build:
@@ -32,11 +32,11 @@ services:
     container_name: discord-bot-app
     depends_on:
       - discord-api
-      - mongo
     environment:
-      - DISCORD_TOKEN=${DISCORD_TOKEN}
-      - GPT_API_KEY=${GPT_API_KEY}
-      - API_BASE_URL=http://discord-api:5000/api  # Use service name instead of localhost
+      DISCORD_TOKEN: ${DISCORD_TOKEN}
+      GPT_API_KEY: ${CHATGPT_API_KEY}
+      API_BASE_URL: http://discord-api:5000/api
+      MONGODB_URI: mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/discordBotDB?authSource=discordBotDB
 
 volumes:
   mongo-data:
