@@ -10,7 +10,7 @@ services:
       MONGO_INITDB_DATABASE: discordBotDB
     volumes:
       - mongo-data:/data/db
-      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js  # Init script to set up collections/users
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mango.js  # Init script to set up collections/users
 
   discord-api:
     build:
@@ -18,7 +18,7 @@ services:
       dockerfile: Dockerfile.api
     container_name: discord-api
     ports:
-      - "5000:5000"
+      - "5000:5000" 
     depends_on:
       - mongo
     environment:
