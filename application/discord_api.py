@@ -35,7 +35,7 @@ def save_conversation(discord_id, user_message, bot_response):
         response.raise_for_status()  # Raise an exception for HTTP errors
     except requests.RequestException as e:
         print(f"Error saving conversation: {e}")
-TARGET_CHANNEL_IDS = [1234567890]  # Replace with actual channel ID
+TARGET_CHANNEL_IDS = [1290814086246039652, 1290814307541712906]  # Replace with actual channel ID
 
 @bot.event
 async def on_message(message):
@@ -50,29 +50,21 @@ async def on_message(message):
         bot_response = "Bong"
         await message.channel.send(bot_response)
 
+    # Call GPT to get a response
+    bot_response = chatgpt_response(user_message)
+    
+    # Save the conversation via the REST API
+    save_conversation(str(message.author.id), user_message, bot_response)
+    
+    # Send the GPT response back to the channel
+    await message.channel.send(f"Answer: {bot_response}")
+
+
 
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user}')
 
-@bot.event
-async def on_message(message):
-    if message.channel.id not in TARGET_CHANNEL_IDS:
-        return
-
-    if message.author == bot.user:
-        return
-
-    user_message = message.content.strip()
-
-    # Call GPT to get a response
-    bot_response = chatgpt_response(user_message)
-
-    # Save the conversation via the REST API
-    save_conversation(str(message.author.id), user_message, bot_response)
-
-    # Send the GPT response back to the channel
-    await message.channel.send(f"Answer: {bot_response}")
 
 # Additional command for starting a conversation directly via a command (if necessary)
 @bot.command(name='startchat')
