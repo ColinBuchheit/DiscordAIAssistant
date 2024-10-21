@@ -1,6 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
-import { connectToDatabase, saveConversation, getUserConversation, client } from '../infrastructure/database';
+import { connectToDatabase, saveConversation, getUserConversation, client } from '../../infrastructure/database';
 import rateLimit from 'express-rate-limit';  // Import for rate limiting
 
 dotenv.config();
