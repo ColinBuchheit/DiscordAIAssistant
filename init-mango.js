@@ -4,8 +4,8 @@ db = db.getSiblingDB('discordBotDB');
 // Create the user `devUser` with the password `devPassword`
 // and assign the `readWrite` role for `discordBotDB`
 db.createUser({
-  user: "devUser",
-  pwd: "devPassword",
+  user: "Admin",
+  pwd: "adminPassword",
   roles: [
     {
       role: "readWrite",
