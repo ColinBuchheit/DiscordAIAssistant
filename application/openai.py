@@ -13,7 +13,7 @@ def chatgpt_response(prompt: str) -> str:
             max_tokens=100,
             temperature=0.7
         )
-        return response['choices'][0]['message']['content']
+        return response.choices[0].message.content
     except Exception as e:
         print(f"Error interacting with GPT: {e}")
         return "Error processing your request."

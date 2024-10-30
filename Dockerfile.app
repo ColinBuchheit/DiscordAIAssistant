@@ -1,17 +1,17 @@
-# Use the official Python 3.10 image
-FROM python:3.10
+# Dockerfile.app
+
+# Use the official Python 3.9 slim image (change version if needed)
+FROM python:3.9-slim
 
 # Set the working directory inside the container
 WORKDIR /app
 
-# Copy requirements.txt first to take advantage of Docker cache
-COPY requirements.txt /app/
-
-# Install Python dependencies
+# Copy the requirements.txt and install dependencies
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the entire project directory to the container
-COPY . /app
+# Copy the rest of the bot code into the container
+COPY . .
 
-# Run the bot
-CMD ["python", "run.py"]
+# Run the Discord bot service
+CMD ["python", "application/discord_api.py"]
