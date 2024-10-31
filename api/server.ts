@@ -54,9 +54,10 @@ app.use((err: any, _req: Request, res: Response, _next: Function) => {
     res.status(500).json({ message: 'Internal server error' });
 });
 
+// Rate limiter middleware
 const apiLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 100
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
 });
 
 // **Add this root route to handle requests to "/"**
@@ -76,30 +77,30 @@ app.get('/getConversation/:discordId', validateDiscordIdParam, asyncHandler(asyn
     const { discordId } = req.params;
     const conversation = await getUserConversation(discordId);
 
-    if (!conversation) {
-        res.status(404).json({ message: 'Conversation not found' });
-        return;
+        if (!conversation) {
+            res.status(404).json({ message: 'Conversation not found.' });
+        } else {
+            res.status(200).json(conversation);
+        }
+    })
+);
+
+// Error handling middleware
+app.use(
+    (err: any, _req: Request, res: Response, _next: NextFunction): void => {
+        console.error('Unhandled Error:', err);
+        res.status(500).json({ message: 'Internal server error' });
     }
+);
 
-    res.status(200).json(conversation);
-}));
-
-
-
+// Start the server
 const server = app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
 
-
-process.on('SIGINT', () => {
-    console.log('Gracefully shutting down...');
-    server.close(async () => {
-        try {
-            await client.close();
-            console.log('MongoDB connection closed.');
-        } catch (error) {
-            console.error('Error while closing MongoDB connection:', error);
-        }
-        process.exit(0);
-    });
+// Graceful shutdown handling
+process.on('SIGINT', async () => {
+    console.log('Shutting down gracefully...');
+    await client.close();
+    server.close(() => process.exit(0));
 });
