@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Set OpenAI API key
-openai.api_key = os.getenv("CHATGPT_API_KEY")
+openai.api_key = os.getenv('CHATGPT_API_KEY')
 
 def chatgpt_response(prompt: str) -> str:
     try:
