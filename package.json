@@ -2,11 +2,11 @@
   "name": "discordaiassistant",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/server.js",
+  "main": "dist/api/server.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/application/server.js",
-    "dev": "ts-node application/server.ts",
+    "start": "node dist/api/server.ts",
+    "dev": "ts-node api/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prettier": "prettier --write ."
   },
@@ -15,17 +15,20 @@
     "cors": "^2.8.5",
     "discord.js": "^14.16.3",
     "dotenv": "^16.4.5",
+    "dotenv-safe": "^9.1.0",
     "express": "^4.21.0",
     "express-rate-limit": "^7.4.1",
     "mongodb": "^6.9.0",
-    "mongoose": "^8.7.0"
+    "mongoose": "^8.7.0",
+    "morgan": "^1.10.0"
   },
   "devDependencies": {
-    "@types/dotenv": "^8.2.0",
+    "@types/dotenv": "^8.2.3",
+    "@types/dotenv-safe": "^8.1.6",
     "@types/express": "^5.0.0",
     "@types/express-rate-limit": "^6.0.0",
     "@types/mongodb": "^4.0.7",
-    "@types/node": "^22.7.4",
+    "@types/node": "^22.8.2",
     "prettier": "^3.3.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.2"
