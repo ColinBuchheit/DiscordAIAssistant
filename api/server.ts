@@ -1,66 +1,81 @@
-import express, { Request, Response, NextFunction, Application } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
-import rateLimit from 'express-rate-limit';
-import {
-    connectToDatabase,
-    saveConversation,
-    getUserConversation,
-    client,
-} from '../infrastructure/database';
+import { connectToDatabase, saveConversation, getUserConversation, client } from '../infrastructure/database';
+import rateLimit from 'express-rate-limit';  // Import for rate limiting
 
-// Load environment variables
 dotenv.config();
 
-// Initialize Express app with correct typing
-const app: Application = express();
-const port = process.env.PORT || 5000;
+const requiredEnvVars = ['MONGODB_URI', 'PORT'];
+requiredEnvVars.forEach((envVar) => {
+    if (!process.env[envVar]) {
+        console.error(`Environment variable ${envVar} is missing.`);
+        process.exit(1);
+    }
+});
 
+const app = express();
 app.use(express.json());
 
+const port = process.env.PORT || 5000;
+
+// Connect to the database when the server starts
+connectToDatabase();
+
+// Middleware for validation
+const validateConversationRequest = (req: Request, res: Response, next: NextFunction): void => {
+    const { discordId, userMessage, botResponse } = req.body;
+
+    if (!discordId || !userMessage || !botResponse) {
+        res.status(400).json({ message: 'Missing required fields' });
+        return;
+    }
+
+    next();
+};
+
+const validateDiscordIdParam = (req: Request, res: Response, next: NextFunction): void => {
+    const { discordId } = req.params;
+
+    if (!discordId || !/^\d+$/.test(discordId)) {
+        res.status(400).json({ message: 'Invalid Discord ID' });
+        return;
+    }
+
+    next();
+};
+
+const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) => {
+    return (req: Request, res: Response, next: NextFunction): Promise<void> =>
+        Promise.resolve(fn(req, res, next)).catch((err) => next(err));
+};
+
+app.use((err: any, _req: Request, res: Response, _next: Function) => {
+    console.error('Unhandled Error:', err);
+    res.status(500).json({ message: 'Internal server error' });
+});
+
+// Rate limiter middleware
 const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100, // limit each IP to 100 requests per windowMs
 });
 
-// Ensure MongoDB connection is established
-connectToDatabase()
-    .then(() => console.log('Connected to MongoDB'))
-    .catch((err) => {
-        console.error('Error connecting to MongoDB:', err);
-        process.exit(1);
-    });
+// **Add this root route to handle requests to "/"**
+app.get('/', (_req: Request, res: Response) => {
+    res.send('Welcome to the DiscordAI Assistant API!');
+});
 
-// Async handler to wrap all async routes (to avoid unhandled promise rejections)
-const asyncHandler =
-    (fn: (req: Request, res: Response, next: NextFunction) => Promise<void>) =>
-    (req: Request, res: Response, next: NextFunction) =>
-        Promise.resolve(fn(req, res, next)).catch(next);
+// Endpoint to save a conversation
+app.post('/saveConversation', apiLimiter, validateConversationRequest, asyncHandler(async (req: Request, res: Response) => {
+    const { discordId, userMessage, botResponse } = req.body;
+    await saveConversation(discordId, userMessage, botResponse);
+    res.status(200).json({ message: 'Conversation saved successfully' });
+}));
 
-// Root route
-app.get(
-    '/',
-    (_req: Request, res: Response): void => {
-        res.send('Welcome to the DiscordAI Assistant API!');
-    }
-);
-
-// Save conversation endpoint with async handler
-app.post(
-    '/saveConversation',
-    apiLimiter,
-    asyncHandler(async (req: Request, res: Response): Promise<void> => {
-        const { discordId, userMessage, botResponse } = req.body;
-        await saveConversation(discordId, userMessage, botResponse);
-        res.status(200).json({ message: 'Conversation saved successfully.' });
-    })
-);
-
-// Get conversation endpoint with async handler
-app.get(
-    '/getConversation/:discordId',
-    asyncHandler(async (req: Request, res: Response): Promise<void> => {
-        const { discordId } = req.params;
-        const conversation = await getUserConversation(discordId);
+// Endpoint to get a conversation by Discord ID
+app.get('/getConversation/:discordId', validateDiscordIdParam, asyncHandler(async (req: Request, res: Response) => {
+    const { discordId } = req.params;
+    const conversation = await getUserConversation(discordId);
 
         if (!conversation) {
             res.status(404).json({ message: 'Conversation not found.' });
