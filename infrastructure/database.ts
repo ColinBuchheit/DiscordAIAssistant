@@ -3,8 +3,9 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
-export const client = new MongoClient(uri); // Export client
+const uri = process.env.MONGODB_URI || 'mongodb://mongo:27017/discordBotDB';
+
+export const client = new MongoClient(uri);
 
 let db: Db;
 let collection: Collection<Conversation>;
@@ -26,23 +27,31 @@ interface Conversation {
   conversations: DailyConversation[];
 }
 
-// Connect to MongoDB
+// Connect to MongoDB with retry logic
 export async function connectToDatabase(): Promise<void> {
-  try {
-    if (!db || !collection) { // Check if db and collection are already initialized
-      await client.connect();
-      db = client.db('discordBotDB');
-      collection = db.collection<Conversation>('conversations');
-      console.log('Connected to MongoDB and initialized conversations collection');
+  const maxRetries = 5;
+  let retries = maxRetries;
 
-      // Optionally create an index on `discordId` to optimize lookups
-      await collection.createIndex({ discordId: 1 });
-    } else {
-      console.log('MongoDB connection already established.');
+  while (retries) {
+    try {
+      if (!db || !collection) {
+        await client.connect();
+        db = client.db('discordBotDB');
+        collection = db.collection<Conversation>('conversations');
+        console.log('Connected to MongoDB and initialized conversations collection');
+
+        // Optionally create an index on `discordId` to optimize lookups
+        await collection.createIndex({ discordId: 1 });
+      } else {
+        console.log('MongoDB connection already established.');
+      }
+      break; // Exit loop if successful
+    } catch (error) {
+      retries -= 1;
+      console.error(`Error connecting to MongoDB: ${(error as Error).message}. Retries left: ${retries}`);
+      if (retries === 0) throw new Error('Failed to connect to MongoDB after multiple attempts');
+      await new Promise((res) => setTimeout(res, 5000)); // Wait before retrying
     }
-  } catch (error) {
-    console.error('Error connecting to MongoDB:', error);
-    throw new Error('Failed to connect to MongoDB');
   }
 }
 
@@ -53,79 +62,59 @@ export async function saveConversation(
   botResponse: string
 ): Promise<void> {
   const timestamp = new Date();
-  const date = timestamp.toISOString().split('T')[0]; // Extract date in "YYYY-MM-DD" format
-  const newEntry: ConversationEntry = {
-    userMessage,
-    botResponse,
-    timestamp,
-  };
+  const date = timestamp.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+  const newEntry: ConversationEntry = { userMessage, botResponse, timestamp };
 
   try {
     const existingConversation = await collection.findOne({ discordId });
 
     if (existingConversation) {
-      // Check if there is already a conversation for the current date
       const existingDailyConversation = existingConversation.conversations.find(
-        (conversation: DailyConversation) => conversation.date === date
+        (conv: DailyConversation) => conv.date === date
       );
 
       if (existingDailyConversation) {
-        // If the date exists, add the new entry to that day's conversations
         await collection.updateOne(
           { discordId, 'conversations.date': date },
           { $push: { 'conversations.$.entries': newEntry } }
         );
       } else {
-        // If the date does not exist, create a new conversation for that date
         await collection.updateOne(
           { discordId },
           { $push: { conversations: { date, entries: [newEntry] } } }
         );
       }
     } else {
-      // If the user has no existing conversations, create a new document for them
       const newConversation: Conversation = {
         discordId,
-        conversations: [
-          {
-            date,
-            entries: [newEntry],
-          },
-        ],
+        conversations: [{ date, entries: [newEntry] }],
       };
-
       await collection.insertOne(newConversation);
     }
 
     console.log('Conversation saved successfully.');
   } catch (error) {
-    console.error('Error saving conversation:', error);
+    console.error('Error saving conversation:', (error as Error).message);
     throw new Error('Failed to save conversation');
   }
 }
 
-// Retrieve a user's conversation from MongoDB
+// Retrieve a user's conversation
 export async function getUserConversation(
   discordId: string,
   date?: string
 ): Promise<Conversation | null> {
   try {
-    let conversation: Conversation | null = null;
+    const query = date
+      ? { discordId, 'conversations.date': date }
+      : { discordId };
 
-    if (date) {
-      // Retrieve conversation for a specific date
-      conversation = await collection.findOne(
-        { discordId, 'conversations.date': date },
-        { projection: { 'conversations.$': 1 } } // Only return the specific date's conversation
-      );
-    } else {
-      // Return all conversations for the user
-      conversation = await collection.findOne({ discordId });
-    }
+    const projection = date ? { 'conversations.$': 1 } : undefined;
+    const conversation = await collection.findOne(query, { projection });
 
     return conversation || null;
   } catch (error) {
-    console.error('Error retrieving conversation:', error);
+    console.error('Error retrieving conversation:', (error as Error).message);
     throw new Error('Failed to retrieve conversation');
   }
 }

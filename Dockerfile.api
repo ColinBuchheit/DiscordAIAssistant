@@ -1,28 +1,23 @@
-# Use the Node.js base image
+# Use official Node.js LTS version as the base image
 FROM node:18
 
-# Install Python and pip
-RUN apt-get update && apt-get install -y python3 python3-venv
-
-# Create a virtual environment and install pymongo within it
-RUN python3 -m venv /opt/venv
-RUN /opt/venv/bin/pip install pymongo
-
-# Make sure the virtual environment’s Python is used when running Python scripts
-ENV PATH="/opt/venv/bin:$PATH"
-
-# Set up working directory
+# Set the working directory in the container
 WORKDIR /app
 
-# Copy package.json and install Node dependencies
+# Copy the package.json and package-lock.json files to install dependencies first (for better caching)
 COPY package*.json ./
-RUN npm install
 
-# Copy the rest of your application code
+# Install production dependencies only
+RUN npm install --production
+
+# Copy the rest of the project files into the working directory
 COPY . .
 
-# Expose the port (optional if not already done)
-EXPOSE 5001
+# Build the TypeScript files
+RUN npm run build
 
-# Run the application
-CMD ["npm", "start"]
+# Expose the application port (make sure it matches the one in your environment variables)
+EXPOSE 5000
+
+# Set the command to run your server
+CMD ["node", "dist/api/server.js"]
