@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile.api
     ports:
-      - "5000:5000"
+      - "5000:5000" 
     depends_on:
       mongodb:
         condition: service_healthy
@@ -31,14 +31,14 @@ services:
     networks:
       - bot-network
     environment:
-      API_BASE_URL: http://api-application:5000 #points just to api application (simplification)
-    restart: on-failure
+      API_BASE_URL: http://api-application:5000/api
+    restart: on-failure  # Auto-restart if it crashes
 
   mongodb:
     image: mongo:latest
     restart: always
     ports:
-      - "27017:27017"
+      - "27017:27017"  # Remove if not needed externally
     networks:
       - bot-network
     environment:
