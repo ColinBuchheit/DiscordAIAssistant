@@ -7,6 +7,11 @@ WORKDIR /app
 # Copy the package.json and package-lock.json files to install dependencies first (for better caching)
 COPY package*.json ./
 
+RUN npm install -g typescript
+
+RUN npm install --save-dev @types/express
+
+
 # Install production dependencies only
 RUN npm install --production
 

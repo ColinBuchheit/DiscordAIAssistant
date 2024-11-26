@@ -16,4 +16,3 @@ db.createUser({
 
 // Optionally, you can create initial collections
 db.createCollection('conversations');
-
