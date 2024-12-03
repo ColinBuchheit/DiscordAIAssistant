@@ -1,17 +1,23 @@
-# Use the official Python 3.10 image
-FROM python:3.10
+# Use the official Node.js LTS version
+FROM node:18
 
-# Set the working directory inside the container
+# Set the working directory
 WORKDIR /app
 
-# Copy requirements.txt first to take advantage of Docker cache
-COPY requirements.txt /app/
+# Copy package.json and package-lock.json
+COPY package.json package-lock.json ./
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install dependencies
+RUN npm install
 
-# Copy the entire project directory to the container
-COPY . /app
+# Copy the project files
+COPY . .
 
-# Run the bot
-CMD ["python", "run.py"]
+# Compile TypeScript to JavaScript
+RUN npm run build
+
+# Expose necessary ports (optional, depending on your app's behavior)
+EXPOSE 4000
+
+# Start the bot
+CMD ["node", "dist/application/run.js"]

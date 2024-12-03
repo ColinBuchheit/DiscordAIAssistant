@@ -20,6 +20,11 @@ services:
       interval: 10s
       retries: 5
       start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   discord-bot:
     build:
@@ -33,6 +38,11 @@ services:
     environment:
       API_BASE_URL: http://api-application:5000 #points just to api application (simplification)
     restart: on-failure
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   mongodb:
     image: mongo:latest
@@ -52,6 +62,11 @@ services:
       interval: 10s
       timeout: 10s
       retries: 15
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
   bot-network:
