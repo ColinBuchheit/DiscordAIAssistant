@@ -12,15 +12,19 @@
   },
   "dependencies": {
     "@types/cors": "^2.8.17",
+    "axios": "^1.7.8",
     "cors": "^2.8.5",
     "discord.js": "^14.16.3",
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.4.6",
     "dotenv-safe": "^9.1.0",
     "express": "^4.21.0",
     "express-rate-limit": "^7.4.1",
     "mongodb": "^6.9.0",
     "mongoose": "^8.7.0",
-    "morgan": "^1.10.0"
+    "mongosh": "^2.3.4",
+    "morgan": "^1.10.0",
+    "openai": "^4.74.0",
+    "winston": "^3.17.0"
   },
   "devDependencies": {
     "@types/dotenv": "^8.2.3",
