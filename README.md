@@ -1,16 +1,18 @@
+
 # Discord AI Assistant - Developer Setup Guide
 
-This project is a Discord bot integrated with OpenAI's GPT model and MongoDB for storing conversations. The following guide is intended for developers who will be contributing to or continuing development on this project. It provides detailed steps on how to set up the project locally using Docker and environment configurations.
+This project is a Discord bot integrated with OpenAI's GPT model and MongoDB for storing conversations. The following guide is intended for developers contributing to or continuing development on this project. It provides detailed steps for setting up the project locally using Docker and configuring the required environment.
 
 ---
 
 ## Prerequisites
 
-To get started, ensure you have the following installed:
+Ensure you have the following installed before proceeding:
 
-- [Docker](https://www.docker.com/get-started) and [Docker Compose](https://docs.docker.com/compose/install/)
+- [Docker and Docker Compose](https://www.docker.com/products/docker-desktop)
+- [Node.js (with npm)](https://nodejs.org/)
 - A [Discord Developer Account](https://discord.com/developers/applications) with a bot token (`DISCORD_TOKEN`)
-- An [OpenAI API Key](https://platform.openai.com/signup) for ChatGPT integration
+- An OpenAI API Key for ChatGPT integration ([Get your API Key here](https://platform.openai.com/))
 
 ---
 
@@ -18,7 +20,7 @@ To get started, ensure you have the following installed:
 
 ### 1. Clone the Repository
 
-Start by cloning this repository to your local machine:
+Start by cloning the repository to your local machine:
 
 ```bash
 git clone https://github.com/ColinBuchheit/DiscordAIAssistant.git
@@ -29,138 +31,209 @@ cd DiscordAIAssistant
 
 ### 2. Add Environment Variables
 
-Add the following environment variables to the `.env` file:
+Create a `.env` file in the root directory of the project. Use the following template for reference:
 
 ```env
-# MongoDB Connection String
+# .env Template for Discord AI Assistant
+
+## MongoDB connection information
 MONGODB_URI=mongodb://devUser:devPassword@mongo:27017/discordBotDB?authSource=discordBotDB
+PORT=5000
 
-# Discord Bot Token
+## Discord and OpenAI API Keys
 DISCORD_TOKEN=<your_discord_token>
-
-# OpenAI API Key
 CHATGPT_API_KEY=<your_openai_api_key>
+ASSISTANT_KEY=<your_assistant_key>
 
-# MongoDB Admin Credentials
+## Discord Channel IDs (comma-separated list)
+DISCORD_CHANNEL_IDS=<comma_separated_channel_ids>
+
+## MongoDB root credentials for initial setup
 MONGO_INITDB_ROOT_USERNAME=devUser
 MONGO_INITDB_ROOT_PASSWORD=devPassword
-
-# API Port
-PORT=5000
 ```
 
-Replace `<your_discord_token>` with your actual Discord bot token.
-Replace `<your_openai_api_key>` with your OpenAI API key.
+### Instructions for `.env`
+
+1. Replace `<your_discord_token>`, `<your_openai_api_key>`, `<your_assistant_key>`, and `<comma_separated_channel_ids>` with the appropriate values.
+2. Save this file as `.env` in the root directory of your project.
+
+**Important:** Ensure the `.env` file is added to your `.gitignore` file to keep sensitive information secure.
 
 ---
 
-### 3. Start the Application with Docker
+### 3. Install Dependencies
 
-The project is fully containerized using Docker, making it easier for any developer to set up and run the application locally.
+In the project directory, install the required dependencies for the application:
 
-**Step 1: Build and Start the Containers**
+```bash
+npm install
+```
 
-Run the following command to build and start the necessary Docker containers:
+This ensures that all necessary Node.js packages are installed for the bot and API to function correctly.
+
+---
+
+### 4. Start the Application with Docker
+
+The project is containerized using Docker for easy setup.
+
+#### Step 1: Ensure Docker Desktop is Running
+
+Before running the project, make sure that [Docker Desktop](https://www.docker.com/products/docker-desktop) is open and running on your machine. This is necessary for the containers to start correctly.
+
+#### Step 2: Build and Start Containers
+
+Run the following command to build and start the Docker containers:
 
 ```bash
 docker-compose up -d --build
 ```
 
-This command will:
+This will:
 
-- Set up MongoDB and initialize it with the `discordBotDB` database.
-- Start the Node.js API server for handling API requests.
-- Start the Discord bot, which will listen for commands on the Discord server.
+- Set up a MongoDB instance and initialize the `discordBotDB` database.
+- Start the Node.js API server for handling requests.
+- Launch the Discord bot, ready to listen for commands.
 
-**Step 2: Verify Containers Are Running**
+#### Step 3: Verify Running Containers
 
-Check the running containers using:
+Check the status of the containers to ensure everything is running correctly:
 
 ```bash
 docker-compose ps
 ```
 
-You should see `mongo`, `discord-api`, and `discord-bot-app` containers running.
+You should see the following containers:
+
+- `mongo`
+- `discord-api`
+- `discord-bot-app`
 
 ---
 
-### 4. Access MongoDB
+### 5. Viewing Chat History
 
-For development purposes, you can access MongoDB using MongoDB Compass or the command line.
+To view the stored chat history in MongoDB, use the following commands in your terminal:
 
-**MongoDB Compass:**
+1. Access the MongoDB container:
 
-Use the following connection string to access your database:
+   ```bash
+   docker exec -it discordaiassistant-mongodb-1 mongosh
+   ```
 
-```
-mongodb://devUser:devPassword@localhost:27017/discordBotDB?authSource=discordBotDB
-```
+2. Use Admin:
 
-You can browse and manage your collections here, especially the `conversations` collection, which stores user interactions.
+   ```bash
+   use admin
+   ```
+
+3. Login and Auth:
+
+   ```bash
+   db.auth('devUser', 'devPassword')
+   ```
+
+4. Switch to the `discordBotDB` database:
+
+   ```bash
+   use discordBotDB
+   ```
+
+5. Query the `conversations` collection to view chat history:
+
+   ```bash
+   db.conversations.find().pretty()
+   ```
+
+This will display all stored conversations in a readable format.
 
 ---
 
-### 5. Making Changes and Rebuilding
+### 6. Access MongoDB
 
-**Step 1: Modify Code**
+For debugging or testing purposes, you can access MongoDB using MongoDB Compass or a command-line interface.
 
-- Backend API code is located in the `discord-api` folder, specifically the `server.ts` file.
-- The bot's Python logic is located in the `discord-bot-app` folder, with key files like `discord_api.py` and `openai.py`.
+- **MongoDB Compass:**  
+  Use this connection string to access the database:
 
-**Step 2: Rebuild and Restart Containers**
+  ```bash
+  mongodb://devUser:devPassword@localhost:27017/discordBotDB?authSource=discordBotDB
+  ```
 
-After making any code changes, you will need to rebuild the containers to reflect your changes:
+  Here, you can manage collections such as `conversations`, which store user interactions.
+
+---
+
+### 7. Modify and Rebuild the Application
+
+#### Step 1: Edit Code
+
+- Backend API code is in the `discord-api` folder (e.g., `server.ts`).
+- Bot-related logic is in the `discord-bot-app` folder (e.g., `discord_api.ts`, `openai.ts`, etc.).
+
+#### Step 2: Rebuild the Application
+
+After making changes, rebuild and restart the containers to apply the updates:
 
 ```bash
 docker-compose down -v
-```
-
-The `-v` flag will remove existing containers and volumes, ensuring that any changes to the database or configurations are fully applied.
-
-Then start the containers again:
-
-```bash
 docker-compose up -d --build
 ```
 
-**Step 3: Test Changes**
+This ensures that all code changes and dependencies are applied cleanly.
 
-Once your containers are back up and running, test the functionality of your changes by interacting with the bot in Discord or sending API requests to the server running on [http://localhost:5000](http://localhost:5000).
+#### Step 3: Test Changes
 
----
+Once the containers are running, you can:
 
-### 6. Troubleshooting
-
-**MongoDB Authentication Errors**
-
-If you encounter MongoDB authentication issues, make sure the credentials in your `.env` file match those in your `init-mongo.js` or database initialization script.
-
-**Checking Logs for Errors**
-
-Use the following command to check container logs if any issues arise:
-
-```bash
-docker-compose logs -f
-```
-
-This will show you logs from all containers, helping you identify errors in MongoDB, the API server, or the bot.
-
-You can also use the following command to check logs for a specific container (e.g., `discord-bot-app`):
-
-```bash
-docker-compose logs -f discord-bot-app
-```
-
-This helps in narrowing down issues to a particular service.
+- Interact with the bot on Discord.
+- Send API requests to the server running at `http://localhost:5000`.
 
 ---
 
-### 7. Shutting Down the Project
+### 8. Troubleshooting
 
-When you're finished working on the project, you can shut down the running containers with:
+#### Common Issues
+
+- **MongoDB Authentication Errors:** Ensure `.env` credentials match those in the database initialization script.
+- **Missing Dependencies:** Always run `npm install` in the project directory after pulling new code to ensure dependencies are up-to-date.
+- **API Errors:** Check your `.env` file for accurate values and verify that all required environment variables are set.
+
+#### Checking Logs
+
+Use the following commands to view logs for debugging:
+
+- View All Logs:
+
+  ```bash
+  docker-compose logs -f
+  ```
+
+- View Logs for a Specific Container:
+
+  ```bash
+  docker-compose logs -f <container_name>
+  ```
+
+  Replace `<container_name>` with `mongo`, `discord-api`, or `discord-bot-app`.
+
+---
+
+### 9. Shut Down the Project
+
+When you’re done working on the project, stop and remove the containers with:
 
 ```bash
 docker-compose down
 ```
 
-This will stop and remove the containers but keep the database volume intact.
+This will stop all containers but keep your database volume intact.
+
+---
+
+## Key Features of This Setup
+
+- **Conversation Memory:** User conversations are stored in MongoDB and retrieved during bot interactions for personalized responses.
+- **TypeScript Integration:** All components have been rewritten in TypeScript for better compatibility and maintainability.
+- **Dockerized Setup:** Simplifies development and deployment by using containerized services.
