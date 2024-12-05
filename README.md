@@ -31,6 +31,8 @@ cd DiscordAIAssistant
 
 ### 2. Add Environment Variables
 
+If you are a tester we have already provided you with a .env file in the submission. Follow the "Discord Setup Instructions" document and add your respective channel IDs to the env variable location.
+
 Create a `.env` file in the root directory of the project. Use the following template for reference:
 
 ```env
@@ -112,7 +114,7 @@ You should see the following containers:
 
 ---
 
-### 5. Viewing Chat History
+### 5. Viewing Chat History (MangoDB through terminal)
 
 To view the stored chat history in MongoDB, use the following commands in your terminal:
 
@@ -148,24 +150,7 @@ To view the stored chat history in MongoDB, use the following commands in your t
 
 This will display all stored conversations in a readable format.
 
----
-
-### 6. Access MongoDB
-
-For debugging or testing purposes, you can access MongoDB using MongoDB Compass or a command-line interface.
-
-- **MongoDB Compass:**  
-  Use this connection string to access the database:
-
-  ```bash
-  mongodb://devUser:devPassword@localhost:27017/discordBotDB?authSource=discordBotDB
-  ```
-
-  Here, you can manage collections such as `conversations`, which store user interactions.
-
----
-
-### 7. Modify and Rebuild the Application
+### 8. Modify and Rebuild the Application
 
 #### Step 1: Edit Code
 
@@ -192,7 +177,7 @@ Once the containers are running, you can:
 
 ---
 
-### 8. Troubleshooting
+### 9. Troubleshooting
 
 #### Common Issues
 
@@ -220,7 +205,7 @@ Use the following commands to view logs for debugging:
 
 ---
 
-### 9. Shut Down the Project
+### 10. Shut Down the Project
 
 When you’re done working on the project, stop and remove the containers with:
 
