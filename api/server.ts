@@ -2,7 +2,7 @@ import express, { Request, Response, NextFunction } from "express";
 import dotenv from "dotenv";
 import { connectToDatabase, saveConversation, getUserConversation, client } from "../infrastructure/database";
 import rateLimit from "express-rate-limit";
-import { chatGPTResponse } from "../application/openai"; // Import the OpenAI interaction logic
+import { chatGPTResponse } from "../application/openai"; //import the OpenAI interaction logic
 
 dotenv.config();
 
@@ -19,10 +19,10 @@ app.use(express.json());
 
 const port = process.env.PORT || 5000;
 
-// Connect to the database when the server starts
+//connect to the database when the server starts
 connectToDatabase();
 
-// Middleware for validation
+//middleware for validation
 const validateConversationRequest = (req: Request, res: Response, next: NextFunction): void => {
     const { discordId, userMessage, botResponse } = req.body;
 
@@ -34,13 +34,13 @@ const validateConversationRequest = (req: Request, res: Response, next: NextFunc
     next();
 };
 
-// Rate limiter middleware
+//rate limiter middleware
 const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
+    max: 100, //limit each IP to 100 requests per windowMs
 });
 
-// Helper to wrap async handlers to ensure correct return type
+//helper to wrap async handlers to ensure correct return type
 const asyncHandler =
     (fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) =>
     (req: Request, res: Response, next: NextFunction): void => {

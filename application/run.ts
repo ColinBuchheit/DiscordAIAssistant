@@ -56,40 +56,45 @@ client.on("messageCreate", async (message: Message) => {
 
     let conversationHistory = ""; // Initialize conversation history
 
-try {
-    const response = await axios.get(`${API_BASE_URL}/getConversation/${discordId}/${channelId}`);
-    const conversations = response.data.conversations;
-
-    if (conversations && conversations.length > 0) {
-        // Filter out interactions where botResponse is empty or undefined
-        const filteredConversations = conversations.filter((entry: { userMessage: string; botResponse: string }) => {
-            return entry.botResponse && entry.userMessage; // Only include complete conversations
-        });
-
-        if (filteredConversations.length > 0) {
-            // Format the conversation history for the prompt
-            conversationHistory = filteredConversations
-                .map((entry: { userMessage: string; botResponse: string }) => {
-                    const userMessage = entry.userMessage || "[No message]";
-                    const botResponse = entry.botResponse || "[No response]";
-                    return `User: ${userMessage}\nBot: ${botResponse}`;
-                })
-                .join("\n");
-            log("info", "Filtered conversation history retrieved.");
+    try {
+        const response = await axios.get(`${API_BASE_URL}/getConversation/${discordId}/${channelId}`);
+        const conversationData = response.data;
+    
+        if (conversationData && conversationData.conversations && conversationData.conversations.length > 0) {
+            // Flatten all entries from all dates into a single array
+            const allEntries = conversationData.conversations.flatMap((dailyConversation: any) =>
+                dailyConversation.entries.map((entry: { userMessage: string; botResponse: string }) => entry)
+            );
+    
+            // Filter out interactions where botResponse is empty or undefined
+            const filteredConversations = allEntries.filter((entry: { userMessage: string; botResponse: string }) => {
+                return entry.botResponse && entry.userMessage; // Only include complete conversations
+            });
+    
+            if (filteredConversations.length > 0) {
+                // Format the conversation history for the prompt
+                conversationHistory = filteredConversations
+                    .map((entry: { userMessage: string; botResponse: string }) => {
+                        const userMessage = entry.userMessage || "[No message]";
+                        const botResponse = entry.botResponse || "[No response]";
+                        return `User: ${userMessage}\nBot: ${botResponse}`;
+                    })
+                    .join("\n");
+                log("info", "Filtered conversation history retrieved.");
+            } else {
+                log("info", "No valid conversation history found.");
+            }
         } else {
-            log("info", "No valid conversation history found.");
+            log("info", "No conversation history found.");
         }
-    } else {
-        log("info", "No conversation history found.");
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error("Error fetching conversation history:", error.response?.data || error.message);
+        } else {
+            console.error("Unexpected error fetching conversation history:", (error as Error).message);
+        }
     }
-} catch (error) {
-    if (axios.isAxiosError(error)) {
-        console.error("Error fetching conversation history:", error.response?.data || error.message);
-    } else {
-        console.error("Unexpected error fetching conversation history:", (error as Error).message);
-    }
-}
-
+    
 
     // Step 2: Build the prompt with the conversation history
     const prompt = `${conversationHistory}\nUser: ${message.content}\nBot:`;
